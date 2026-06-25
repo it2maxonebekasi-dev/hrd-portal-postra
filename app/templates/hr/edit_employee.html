@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- CSS KHUSUS UNTUK CETAK (PRINT) -->
+<style>
+  @media print {
+    /* Sembunyikan elemen navigasi, sidebar, tombol saat mode cetak */
+    .sidebar, .top-navbar, .btn, .no-print, footer, .breadcrumb {
+      display: none !important;
+    }
+    .main-content {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+    /* Ubah tampilan form menjadi seperti dokumen laporan */
+    .card { border: none !important; shadow: none !important; }
+    .form-control, .form-select {
+      border: none !important;
+      border-bottom: 1px solid #000 !important;
+      border-radius: 0 !important;
+      padding-left: 0 !important;
+      background: transparent !important;
+      -webkit-appearance: none; /* Hilangkan panah dropdown */
+    }
+    /* Pastikan header tercetak */
+    h4, h5 { color: #000 !important; }
+    body { background-color: #fff !important; font-size: 12px; }
+    .container-fluid { width: 100% !important; }
+  }
+  
+  /* Style Form Corporate */
+  .form-label-corp {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    color: #1e3a8a; /* Navy Blue */
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+</style>
+
+<div class="container-fluid mt-2 mb-5 font-corp">
+
+  <!-- HEADER ACTIONS -->
+  <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+      <h4 class="fw-bold text-dark mb-1">Perbarui Data Personil</h4>
+      <p class="text-muted small mb-0">Formulir pemutakhiran data karyawan dan arsip dokumen.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-printer me-2"></i>Cetak / PDF
+      </button>
+      <a href="{{ url_for('hr.manage_employees') }}" class="btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left me-2"></i>Kembali
+      </a>
+    </div>
+  </div>
+
+  <!-- FORM WRAPPER -->
+  <div class="card card-corp border-top-primary shadow-sm">
+    <div class="card-body p-4">
+      
+      <form method="POST" enctype="multipart/form-data">
+
+        <!-- ==================================================== -->
+        <!-- A. DATA KEPEGAWAIAN -->
+        <!-- ==================================================== -->
+        <div class="section-title">
+          <i class="bi bi-briefcase-fill"></i> A. Data Kepegawaian
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label-corp">Nama Lengkap (Sesuai KTP)</label>
+            <input type="text" name="name" value="{{ employee.name }}" class="form-control fw-bold" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-corp">Posisi / Jabatan</label>
+            <input type="text" name="position" value="{{ employee.position or '' }}" class="form-control">
+          </div>
+          <div class="col-md-4">
+             <!-- Tampilkan foto saat ini kecil di pojok kanan form -->
+             {% if employee.photo %}
+             <div class="d-flex align-items-center border rounded p-2 bg-light no-print">
+                <img src="{{ url_for('static', filename='uploads/' ~ employee.photo) }}" 
+                     class="rounded-circle me-3" width="40" height="40" style="object-fit:cover;">
+                <div class="small text-muted lh-1">
+                   <span class="d-block">Foto Profil Aktif</span>
+                   <span style="font-size:0.7rem;">Upload file baru di bawah untuk mengganti.</span>
+                </div>
+             </div>
+             {% endif %}
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-corp">Divisi (Job Type)</label>
+            <select name="job_type" class="form-select" required>
+              <option value="">-- Pilih --</option>
+              <option value="security" {% if employee.job_type == 'security' %}selected{% endif %}>Security</option>
+              <option value="cleaning" {% if employee.job_type == 'cleaning' %}selected{% endif %}>Cleaning</option>
+              <option value="driver"   {% if employee.job_type == 'driver' %}selected{% endif %}>Driver</option>
+              <option value="helper"   {% if employee.job_type == 'helper' %}selected{% endif %}>Helper</option>
+              <option value="admin"    {% if employee.job_type == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-corp">Penempatan Client</label>
+            <select name="client_id" class="form-select">
+              <option value="">-- Pilih Client --</option>
+              {% for c in clients %}
+              <option value="{{ c.id }}" {% if employee.client_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-corp">Status Karyawan</label>
+            <select name="status" class="form-select fw-bold {{ 'text-success' if employee.status == 'aktif' else 'text-danger' }}">
+              <option value="aktif"    {% if employee.status == 'aktif' %}selected{% endif %}>Aktif</option>
+              <option value="standby"  {% if employee.status == 'standby' %}selected{% endif %}>Standby</option>
+              <option value="resigned" {% if employee.status == 'resigned' %}selected{% endif %}>Non-Aktif / Resigned</option>
+            </select>
+          </div>
+          
+          <div class="col-md-3 no-print">
+            <label class="form-label-corp">Update Foto Profil</label>
+            <input type="file" name="photo" class="form-control" accept="image/*">
+          </div>
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- B. INFORMASI PRIBADI -->
+        <!-- ==================================================== -->
+        <div class="section-title mt-5">
+          <i class="bi bi-person-vcard-fill"></i> B. Informasi Pribadi
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label-corp">Nomor Induk Kependudukan (NIK)</label>
+            <input type="text" name="nik" class="form-control"
+                   value="{{ employee.personal_detail.nik if employee.personal_detail else '' }}" placeholder="16 digit angka">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Nama Panggilan</label>
+            <input type="text" name="nama_panggilan" class="form-control"
+                   value="{{ employee.personal_detail.nickname if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Jenis Kelamin</label>
+            <select name="jenis_kelamin" class="form-select">
+              <option value="">-- Pilih --</option>
+              <option value="Pria" {% if employee.personal_detail and employee.personal_detail.gender == 'Pria' %}selected{% endif %}>Pria</option>
+              <option value="Wanita" {% if employee.personal_detail and employee.personal_detail.gender == 'Wanita' %}selected{% endif %}>Wanita</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Golongan Darah</label>
+            <input type="text" name="gol_darah" class="form-control"
+                   value="{{ employee.personal_detail.blood_type if employee.personal_detail else '' }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-corp">Tempat Lahir</label>
+            <input type="text" name="tempat_lahir" class="form-control"
+                   value="{{ employee.personal_detail.birth_place if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Tanggal Lahir</label>
+            <input type="date" name="tanggal_lahir" class="form-control"
+                   value="{{ employee.personal_detail.birth_date if employee.personal_detail and employee.personal_detail.birth_date }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Pendidikan Terakhir</label>
+            <input type="text" name="pendidikan" class="form-control"
+                   value="{{ employee.personal_detail.education if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Pekerjaan Sebelumnya</label>
+            <input type="text" name="pekerjaan_terakhir" class="form-control"
+                   value="{{ employee.personal_detail.last_job if employee.personal_detail else '' }}">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-corp">Alamat Sesuai KTP</label>
+            <textarea name="alamat_ktp" rows="2" class="form-control">{{ employee.personal_detail.address_ktp if employee.personal_detail else '' }}</textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-corp">Alamat Domisili Sekarang</label>
+            <textarea name="alamat_sekarang" rows="2" class="form-control">{{ employee.personal_detail.address_current if employee.personal_detail else '' }}</textarea>
+          </div>
+
+          <!-- Data Fisik Grid -->
+          <div class="col-md-3">
+             <label class="form-label-corp">Tinggi Badan (cm)</label>
+             <input type="number" name="tinggi_badan" class="form-control" value="{{ employee.personal_detail.height_cm if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+             <label class="form-label-corp">Berat Badan (kg)</label>
+             <input type="number" name="berat_badan" class="form-control" value="{{ employee.personal_detail.weight_kg if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+             <label class="form-label-corp">Ukuran Seragam</label>
+             <input type="text" name="ukuran_kemeja" class="form-control" value="{{ employee.personal_detail.shirt_size if employee.personal_detail else '' }}" placeholder="S/M/L/XL">
+          </div>
+          <div class="col-md-3">
+             <label class="form-label-corp">Ukuran Sepatu</label>
+             <input type="number" name="ukuran_sepatu" class="form-control" value="{{ employee.personal_detail.shoe_size if employee.personal_detail else '' }}">
+          </div>
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- C. KELUARGA & KONTAK -->
+        <!-- ==================================================== -->
+        <div class="section-title mt-5">
+          <i class="bi bi-people-fill"></i> C. Keluarga & Kontak Darurat
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label-corp">Status Pernikahan</label>
+            <select name="status_pernikahan" class="form-select">
+               <option value="Belum Menikah" {% if employee.personal_detail and employee.personal_detail.marital_status == 'Belum Menikah' %}selected{% endif %}>Belum Menikah</option>
+               <option value="Menikah" {% if employee.personal_detail and employee.personal_detail.marital_status == 'Menikah' %}selected{% endif %}>Menikah</option>
+               <option value="Cerai" {% if employee.personal_detail and employee.personal_detail.marital_status == 'Cerai' %}selected{% endif %}>Cerai</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-corp">Nama Pasangan (Suami/Istri)</label>
+            <input type="text" name="nama_pasangan" class="form-control"
+                   value="{{ employee.personal_detail.spouse_name if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Pekerjaan Pasangan</label>
+            <input type="text" name="pekerjaan_pasangan" class="form-control"
+                   value="{{ employee.personal_detail.spouse_job if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label-corp">Jml Anak</label>
+            <input type="number" name="jumlah_anak" class="form-control"
+                   value="{{ employee.personal_detail.num_children if employee.personal_detail else 0 }}">
+          </div>
+
+          <!-- Kontak Darurat -->
+          <div class="col-12 mt-3">
+            <div class="p-3 bg-light border rounded">
+               <h6 class="fw-bold text-danger mb-3" style="font-size: 0.85rem; text-transform: uppercase;"><i class="bi bi-telephone-fill me-2"></i>Kontak Darurat (Emergency)</h6>
+               <div class="row g-3">
+                 <div class="col-md-4">
+                   <label class="form-label-corp">Nama Kerabat</label>
+                   <input type="text" name="emergency_nama" class="form-control" value="{{ employee.personal_detail.emergency_contact_name if employee.personal_detail else '' }}">
+                 </div>
+                 <div class="col-md-4">
+                   <label class="form-label-corp">Hubungan</label>
+                   <input type="text" name="emergency_hubungan" class="form-control" value="{{ employee.personal_detail.emergency_relation if employee.personal_detail else '' }}" placeholder="Ayah/Ibu/Saudara">
+                 </div>
+                 <div class="col-md-4">
+                   <label class="form-label-corp">No. Telepon / HP</label>
+                   <input type="text" name="emergency_hp" class="form-control" value="{{ employee.personal_detail.emergency_phone if employee.personal_detail else '' }}">
+                 </div>
+                 <div class="col-12">
+                   <label class="form-label-corp">Alamat Kerabat</label>
+                   <input type="text" name="emergency_alamat" class="form-control" value="{{ employee.personal_detail.emergency_address if employee.personal_detail else '' }}">
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- D. JAMINAN SOSIAL & DOKUMEN -->
+        <!-- ==================================================== -->
+        <div class="section-title mt-5">
+          <i class="bi bi-shield-check"></i> D. Jaminan Sosial & Dokumen
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label-corp">BPJS Ketenagakerjaan</label>
+            <input type="text" name="bpjs_ket" class="form-control"
+                   value="{{ employee.personal_detail.bpjs_ketenagakerjaan if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">BPJS Kesehatan</label>
+            <input type="text" name="bpjs_kes" class="form-control"
+                   value="{{ employee.personal_detail.bpjs_kesehatan if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Kartu Indonesia Sehat (KIS)</label>
+            <input type="text" name="bpjs_kis" class="form-control"
+                   value="{{ employee.personal_detail.bpjs_kis if employee.personal_detail else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label-corp">Jamkesda</label>
+            <input type="text" name="jamkesda" class="form-control"
+                   value="{{ employee.personal_detail.jamkesda if employee.personal_detail else '' }}">
+          </div>
+
+          <div class="col-md-6 no-print">
+            <label class="form-label-corp">Upload Scan KTP (PDF/JPG)</label>
+            <input type="file" name="ktp" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+          </div>
+          <div class="col-md-6 no-print">
+            <label class="form-label-corp">Upload Scan Ijazah (PDF/JPG)</label>
+            <input type="file" name="ijazah" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+          </div>
+        </div>
+
+        <!-- BUTTONS ACTIONS -->
+        <div class="d-flex justify-content-end gap-2 mt-5 pt-3 border-top no-print">
+           <a href="{{ url_for('hr.manage_employees') }}" class="btn btn-light border px-4">Batal</a>
+           <button type="submit" class="btn btn-primary px-4 shadow-sm">
+             <i class="bi bi-save me-2"></i>Simpan Perubahan Data
+           </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

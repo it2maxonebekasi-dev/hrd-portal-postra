@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3 class="text-primary fw-bold mb-4">
+    <i class="bi bi-person-gear"></i> Dashboard Admin
+  </h3>
+
+  <div class="row g-4">
+
+    <!-- HR Development -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <div class="display-6 text-primary"><i class="bi bi-people-fill"></i></div>
+          <h5 class="fw-bold mt-2">HR Development</h5>
+          <p>Kelola data karyawan dan pelatihan.</p>
+          <a href="{{ url_for('hr.manage_employees') }}" class="btn btn-outline-primary btn-sm">Buka</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Data Karyawan (🟩 Baru Ditambah) -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <div class="display-6 text-success"><i class="bi bi-person-plus-fill"></i></div>
+          <h5 class="fw-bold mt-2">Input Data Karyawan</h5>
+          <p>Tambah data personal & unggah dokumen (ijazah, KTP, dll).</p>
+          <a href="{{ url_for('employee_input_bp.add_employee') }}"
+             class="btn btn-outline-success btn-sm">
+            Buka
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Absensi -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <div class="display-6 text-warning"><i class="bi bi-clock-history"></i></div>
+          <h5 class="fw-bold mt-2">Absensi</h5>
+          <p>Pantau kehadiran dan lembur harian.</p>
+          <a href="{{ url_for('hr.attendance_dashboard') }}" class="btn btn-outline-warning btn-sm">Buka</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <div class="display-6 text-info"><i class="bi bi-building"></i></div>
+          <h5 class="fw-bold mt-2">Client</h5>
+          <p>Kelola kontrak dan penempatan tenaga kerja.</p>
+          <a href="/client" class="btn btn-outline-info btn-sm">Buka</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Operasional -->
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm border-0">
+        <div class="card-body">
+          <div class="display-6 text-success"><i class="bi bi-truck"></i></div>
+          <h5 class="fw-bold mt-2">Operasional</h5>
+          <p>Monitoring sebaran tenaga kerja di lapangan.</p>
+          <a href="{{ url_for('hr.operation_dashboard') }}" class="btn btn-outline-success btn-sm">Buka</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

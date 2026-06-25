@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- ========================================== -->
+<!-- STYLE KHUSUS CETAK (PRINT CSS) & WEB -->
+<!-- ========================================== -->
+<style>
+    /* Header Print (Tersembunyi di layar, Muncul saat print) */
+    .print-header-area, .print-only { display: none; }
+
+    @media print {
+        @page { size: A4; margin: 1cm; }
+        body { 
+            background-color: #fff !important; 
+            font-family: Arial, sans-serif !important;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact; 
+            font-size: 11px; 
+        }
+        .no-print, .sidebar, .top-navbar, .btn, .breadcrumb, form, footer, .modal {
+            display: none !important;
+        }
+        .main-content { margin: 0 !important; padding: 0 !important; }
+        .container-fluid { padding: 0 !important; width: 100% !important; }
+        .print-only { display: block !important; }
+
+        .print-header-area {
+            display: block !important;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .print-title { font-weight: bold; font-size: 14pt; text-transform: uppercase; }
+        .print-subtitle { font-size: 9pt; }
+
+        .row { display: block !important; }
+        .col-lg-6 { width: 100% !important; display: block !important; padding: 0 !important; margin-bottom: 20px !important; }
+
+        .card { border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+        .card-header-corp { border-bottom: 1px solid #000 !important; background: #f0f0f0 !important; padding: 5px !important; }
+        
+        table { width: 100% !important; border-collapse: collapse !important; }
+        th, td { border: 1px solid #999 !important; padding: 5px !important; }
+        th { background-color: #e0e0e0 !important; }
+
+        .timeline { border-left: 2px solid #999 !important; margin-left: 5px; padding-left: 10px; }
+        .timeline-item { page-break-inside: avoid; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        
+        .activity-image {
+            max-height: 100px !important;
+            width: auto !important;
+            border: 1px solid #000 !important;
+            margin-top: 5px;
+        }
+        
+        .print-footer-area {
+            display: flex !important;
+            justify-content: space-between;
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+        .sign-box { text-align: center; width: 150px; }
+        .sign-line { border-bottom: 1px solid #000; margin-top: 50px; }
+    }
+    
+    /* Style untuk Efek Hover Gambar di Web */
+    .image-container { position: relative; display: inline-block; cursor: pointer; overflow: hidden; border-radius: 6px; }
+    .overlay-zoom {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 0.3s ease;
+    }
+    .image-container:hover .overlay-zoom { opacity: 1; }
+</style>
+
+
+<div class="container-fluid mt-2 mb-5 font-corp">
+
+  <!-- HEADER KHUSUS PRINT -->
+  <div class="print-header-area">
+      <div class="print-title">Laporan Aktivitas & Absensi</div>
+      <div class="print-subtitle">PT. HRD DASHBOARD SYSTEM - Enterprise Resource Planning</div>
+      <div class="print-subtitle">Dicetak pada: <span id="printDate"></span></div>
+  </div>
+
+  <!-- HEADER & NAV (WEB VIEW) -->
+  <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+      <h4 class="fw-bold text-dark mb-1">Detail Operasional</h4>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0 small">
+          <li class="breadcrumb-item"><a href="{{ url_for('hr.operation_dashboard') }}">Monitoring</a></li>
+          <li class="breadcrumb-item active">Log Aktivitas</li>
+        </ol>
+      </nav>
+    </div>
+    <div>
+       <button onclick="window.print()" class="btn btn-primary btn-sm shadow-sm">
+         <i class="bi bi-printer-fill me-2"></i>Cetak PDF
+       </button>
+       <a href="{{ url_for('hr.operation_dashboard') }}" class="btn btn-secondary btn-sm ms-2">
+         <i class="bi bi-arrow-left me-2"></i>Kembali
+       </a>
+    </div>
+  </div>
+
+  <!-- 1. INFO PERSONIL -->
+  <div class="card card-corp border-top-primary shadow-sm mb-4">
+    <div class="card-body p-3">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <div class="d-flex align-items-center">
+            <div class="no-print me-3">
+              <img src="{{ url_for('static', filename='uploads/' ~ (employee.photo or 'default_user.png')) }}"
+                   class="rounded-circle border shadow-sm"
+                   width="60" height="60" style="object-fit:cover;"
+                   onerror="this.src='{{ url_for('static', filename='img/default_user.png') }}'">
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">{{ employee.name }}</h5>
+              <div class="small">
+                  {{ employee.position or 'Staff' }} | <strong>{{ employee.client.name if employee.client else '-' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 text-md-end mt-2 mt-md-0">
+            <div class="small text-muted">Periode Data:</div>
+            <div class="fw-bold text-primary">
+                {{ start_date if start_date else 'Semua' }} s/d {{ end_date if end_date else 'Hari Ini' }}
+            </div>
+            <form method="get" class="d-flex justify-content-end gap-2 mt-2 no-print">
+                <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm" style="width:130px;">
+                <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm" style="width:130px;">
+                <button class="btn btn-sm btn-primary"><i class="bi bi-filter"></i></button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- 2. TABEL ABSENSI -->
+    <div class="col-lg-6">
+      <div class="card card-corp h-100">
+        <div class="card-header-corp bg-light border-bottom p-2 px-3">
+          <h6 class="m-0 fw-bold text-dark">I. DATA KEHADIRAN</h6>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 table-sm">
+            <thead>
+              <tr>
+                <th class="ps-3">Tanggal</th>
+                <th class="text-center">Masuk</th>
+                <th class="text-center">Pulang</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in attendance_history %}
+              <tr>
+                <td class="ps-3">{{ a.date.strftime('%d/%m/%Y') }}</td>
+                <td class="text-center font-monospace">{{ a.check_in.strftime('%H:%M') if a.check_in else '-' }}</td>
+                <td class="text-center font-monospace">{{ a.check_out.strftime('%H:%M') if a.check_out else '-' }}</td>
+                <td class="text-center fw-bold small text-uppercase">{{ a.status }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-center py-3 text-muted">Tidak ada data absensi.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. TIMELINE AKTIVITAS -->
+    <div class="col-lg-6">
+      <div class="card card-corp h-100 border-0">
+        <div class="card-header-corp bg-white border-bottom p-2 px-3">
+          <h6 class="m-0 fw-bold text-dark">II. AKTIVITAS & BUKTI LAPANGAN</h6>
+        </div>
+        <div class="card-body p-3 scrollable-timeline">
+          {% if work_logs %}
+            <div class="timeline">
+              {% for log in work_logs %}
+              <div class="timeline-item">
+                <div class="timeline-marker bg-white border border-3 border-primary no-print"></div>
+                
+                <div class="ps-3">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <div class="fw-bold text-dark">{{ log.created_at.strftime('%d %b, %H:%M') }}</div>
+                    
+                    <div class="text-end" style="font-size: 0.75rem;">
+                        {% if log.latitude and log.longitude %}
+                            <a href="https://www.google.com/maps?q={{ log.latitude }},{{ log.longitude }}" 
+                               target="_blank" 
+                               class="text-decoration-none text-danger no-print fw-bold">
+                               <i class="bi bi-geo-alt-fill"></i> Lihat Peta
+                            </a>
+                            <span class="print-only text-muted">
+                                GPS: {{ log.latitude|round(5) }}, {{ log.longitude|round(5) }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Lokasi -</span>
+                        {% endif %}
+                    </div>
+                  </div>
+                  
+                  <div class="p-2 bg-light border rounded mb-2">
+                      <p class="mb-0 text-dark small">{{ log.description }}</p>
+                  </div>
+
+                  <!-- FOTO BUKTI (DENGAN ZOOM) -->
+                  {% if log.image %}
+                    <div class="image-container" onclick="showImage('{{ url_for('static', filename=log.image) }}', '{{ log.description | replace("'", "\\'") }}')">
+                      <img src="{{ url_for('static', filename=log.image) }}" 
+                           class="img-fluid rounded border activity-image" 
+                           alt="Bukti Foto">
+                      <!-- Overlay Kaca Pembesar (Hanya di Web) -->
+                      <div class="overlay-zoom no-print">
+                          <i class="bi bi-zoom-in text-white fs-2"></i>
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-3 text-muted border rounded bg-light">Belum ada log aktivitas.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER TANDA TANGAN (PRINT ONLY) -->
+  <div class="print-footer-area print-only">
+      <div class="sign-box">
+          <div>Personil</div>
+          <div class="sign-line"></div>
+          <div>{{ employee.name }}</div>
+      </div>
+      <div class="sign-box">
+          <div>Mengetahui,</div>
+          <div class="sign-line"></div>
+          <div>Manager Operasional</div>
+      </div>
+  </div>
+
+</div>
+
+<!-- MODAL ZOOM GAMBAR (LIGHTBOX) -->
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0 shadow-none">
+      <div class="modal-body p-0 text-center position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 bg-white opacity-75" data-bs-dismiss="modal"></button>
+        <img id="zoomedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; background: #fff;">
+        <div class="mt-2">
+            <span id="imageCaption" class="badge bg-dark border text-wrap"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Script Tanggal Cetak
+  document.addEventListener('DOMContentLoaded', function() {
+      const dateElement = document.getElementById('printDate');
+      if(dateElement) {
+          const now = new Date();
+          const options = { day: 'numeric', month: 'long', year: 'numeric' };
+          dateElement.innerText = now.toLocaleDateString('id-ID', options);
+      }
+  });
+
+  // Script Zoom Gambar
+  function showImage(src, caption) {
+      var modalImage = document.getElementById('zoomedImage');
+      var modalCaption = document.getElementById('imageCaption');
+      var myModal = new bootstrap.Modal(document.getElementById('imageZoomModal'));
+      
+      modalImage.src = src;
+      modalCaption.innerText = caption || 'Bukti Aktivitas';
+      myModal.show();
+  }
+</script>
+
+<style>
+  .font-corp { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .card-corp { border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; }
+  .border-top-primary { border-top: 4px solid #1e3a8a; }
+  
+  /* Timeline Web */
+  .timeline { position: relative; padding-left: 5px; border-left: 2px solid #e2e8f0; margin-left: 5px; }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-marker { position: absolute; left: -12px; top: 0; width: 12px; height: 12px; border-radius: 50%; }
+  
+  .activity-image { max-height: 150px; object-fit: cover; }
+</style>
+{% endblock %}

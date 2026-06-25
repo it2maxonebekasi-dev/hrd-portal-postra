@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+.dash { padding: 1.5rem 0; font-family: var(--font-sans, 'Plus Jakarta Sans', sans-serif); }
+
+/* Topbar */
+.dash-topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.dash-topbar .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #888; margin-bottom: .3rem; }
+.dash-topbar h1 { font-size: 22px; font-weight: 600; color: #111; margin: 0; }
+.dash-topbar .date { font-size: 13px; color: #888; margin-top: .25rem; }
+.export-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border: 1px solid #e0e0e0; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: #333; background: #fff;
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+  transition: background .15s;
+}
+.export-btn:hover { background: #f5f5f5; }
+.export-btn i { font-size: 16px; color: #1D9E75; }
+
+/* Stat Cards */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+@media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-card {
+  background: #fff; border: 1px solid #eee; border-radius: 12px;
+  padding: 1.25rem; position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 3px; height: 100%; border-radius: 3px 0 0 3px;
+}
+.stat-card.blue::before  { background: #378ADD; }
+.stat-card.teal::before  { background: #1D9E75; }
+.stat-card.amber::before { background: #EF9F27; }
+.stat-card.purple::before{ background: #7F77DD; }
+.stat-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;
+}
+.stat-card.blue   .stat-icon { background: #E6F1FB; color: #185FA5; }
+.stat-card.teal   .stat-icon { background: #E1F5EE; color: #0F6E56; }
+.stat-card.amber  .stat-icon { background: #FAEEDA; color: #854F0B; }
+.stat-card.purple .stat-icon { background: #EEEDFE; color: #534AB7; }
+.stat-icon i { font-size: 18px; }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #888; margin-bottom: .4rem; }
+.stat-value { font-size: 28px; font-weight: 700; color: #111; line-height: 1; }
+.stat-sub   { font-size: 12px; color: #aaa; margin-top: .4rem; }
+
+/* Charts */
+.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-card {
+  background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 1.25rem;
+}
+.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.chart-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #111; }
+.chart-title i { font-size: 16px; color: #aaa; }
+.chart-hint { font-size: 11px; color: #aaa; }
+.chart-wrap { position: relative; height: 220px; }
+
+/* Modal */
+.modal-content { border: none; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+.modal-header { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 1rem 1.25rem; }
+.modal-title { font-size: 15px; font-weight: 600; color: #111; }
+.modal-footer { background: #fafafa; border-top: 1px solid #f0f0f0; padding: .75rem 1.25rem; }
+.emp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.emp-table th {
+  padding: .75rem 1rem; text-align: left; font-size: 11px; font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase; color: #888;
+  border-bottom: 1px solid #f0f0f0; background: #fafafa; position: sticky; top: 0;
+}
+.emp-table td { padding: .75rem 1rem; border-bottom: 1px solid #f7f7f7; color: #333; }
+.emp-table tr:last-child td { border-bottom: none; }
+.emp-table tr:hover td { background: #fafafa; }
+.emp-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: #E6F1FB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #185FA5; flex-shrink: 0;
+}
+.emp-name-cell { display: flex; align-items: center; gap: 10px; }
+.badge-client {
+  display: inline-block; padding: 3px 10px; border-radius: 100px;
+  font-size: 11px; font-weight: 500; background: #f5f5f5; color: #555;
+  border: 1px solid #eee;
+}
+</style>
+
+<div class="container-fluid p-0 dash">
+
+  <!-- Topbar -->
+  <div class="dash-topbar">
+    <div>
+      <div class="eyebrow">Postra Group</div>
+      <h1>Dashboard HR &amp; Operasional</h1>
+      <p class="date">{{ today.strftime('%A, %d %B %Y') }}</p>
+    </div>
+    <a href="{{ url_for('hr.export_monthly_report') }}" class="export-btn">
+      <i class="bi bi-file-earmark-spreadsheet"></i>
+      Download laporan absen
+    </a>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-grid">
+    <div class="stat-card blue">
+      <div class="stat-icon"><i class="bi bi-people"></i></div>
+      <div class="stat-label">Total personil</div>
+      <div class="stat-value">{{ total_employees }}</div>
+      <div class="stat-sub">Karyawan aktif</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-icon"><i class="bi bi-person-check"></i></div>
+      <div class="stat-label">Hadir hari ini</div>
+      <div class="stat-value">{{ hadir_hari_ini }}</div>
+      <div class="stat-sub">
+        {% if total_employees > 0 %}
+          {{ ((hadir_hari_ini / total_employees) * 100) | round | int }}% dari total
+        {% else %}—{% endif %}
+      </div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon"><i class="bi bi-building"></i></div>
+      <div class="stat-label">Total client</div>
+      <div class="stat-value">{{ total_clients }}</div>
+      <div class="stat-sub">Perusahaan mitra</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon"><i class="bi bi-clipboard-check"></i></div>
+      <div class="stat-label">Penugasan aktif</div>
+      <div class="stat-value">{{ total_assignments }}</div>
+      <div class="stat-sub">Sedang berjalan</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="bi bi-bar-chart"></i> Personil per posisi</div>
+        <span class="chart-hint">Klik batang untuk detail</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="jobChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title"><i class="bi bi-pie-chart"></i> Sebaran per client</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="clientChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-semibold" id="modalTitle">Detail karyawan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive" id="tableWrap">
+          <table class="emp-table">
+            <thead>
+              <tr>
+                <th>Nama</th><th>Jabatan</th><th>Client</th><th>Tgl gabung</th>
+              </tr>
+            </thead>
+            <tbody id="modalTableBody"></tbody>
+          </table>
+        </div>
+        <div id="loadingSpinner" class="text-center py-5 d-none">
+          <div class="spinner-border text-secondary" role="status" style="width:1.5rem;height:1.5rem;border-width:2px"></div>
+          <p class="mt-2 text-muted small">Memuat data...</p>
+        </div>
+        <div id="emptyMessage" class="text-center py-5 d-none">
+          <i class="bi bi-folder-x" style="font-size:2rem;color:#ccc;display:block;margin-bottom:.5rem"></i>
+          <p class="text-muted small">Tidak ada data karyawan aktif.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const COLORS = ['#378ADD','#1D9E75','#EF9F27','#7F77DD','#D85A30','#888'];
+
+  const jobChart = new Chart(document.getElementById('jobChart'), {
+    type: 'bar',
+    data: {
+      labels: jobLabels,
+      datasets: [{
+        data: jobCounts,
+        backgroundColor: COLORS,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#aaa', font: { size: 12 } } },
+        y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#aaa', font: { size: 12 }, stepSize: 1 }, beginAtZero: true }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff', titleColor: '#111', bodyColor: '#555',
+          borderColor: '#eee', borderWidth: 1,
+          callbacks: { label: c => c.raw + ' personil' }
+        }
+      },
+      onClick(e) {
+        const pts = jobChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+        if (pts.length) showDetails(jobLabels[pts[0].index]);
+      },
+      onHover(e, el) { e.native.target.style.cursor = el.length ? 'pointer' : 'default'; }
+    }
+  });
+
+  new Chart(document.getElementById('clientChart'), {
+    type: 'doughnut',
+    data: {
+      labels: clientLabels,
+      datasets: [{
+        data: clientCounts,
+        backgroundColor: COLORS,
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'circle', color: '#888', font: { size: 12 }, padding: 14 }
+        },
+        tooltip: { backgroundColor: '#fff', titleColor: '#111', bodyColor: '#555', borderColor: '#eee', borderWidth: 1 }
+      }
+    }
+  });
+
+  function showDetails(jobType) {
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    document.getElementById('modalTitle').textContent = 'Karyawan: ' + jobType;
+
+    const tbody = document.getElementById('modalTableBody');
+    const tableWrap = document.getElementById('tableWrap');
+    const loader = document.getElementById('loadingSpinner');
+    const empty = document.getElementById('emptyMessage');
+
+    tbody.innerHTML = '';
+    tableWrap.classList.add('d-none');
+    empty.classList.add('d-none');
+    loader.classList.remove('d-none');
+    modal.show();
+
+    var url = "{{ url_for('hr.get_employees_by_job', job_type='PLACEHOLDER') }}".replace('PLACEHOLDER', encodeURIComponent(jobType));
+
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(data => {
+        loader.classList.add('d-none');
+        if (!data.length) { empty.classList.remove('d-none'); return; }
+        tableWrap.classList.remove('d-none');
+        data.forEach(emp => {
+          const init = emp.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+          tbody.innerHTML += `
+            <tr>
+              <td><div class="emp-name-cell">
+                <div class="emp-avatar">${init}</div>
+                <span style="font-weight:500">${emp.name}</span>
+              </div></td>
+              <td style="color:#555">${emp.position || '—'}</td>
+              <td><span class="badge-client">${emp.client}</span></td>
+              <td style="color:#aaa;font-size:12px">${emp.join_date}</td>
+            </tr>`;
+        });
+      })
+      .catch(err => {
+        loader.classList.add('d-none');
+        tableWrap.classList.remove('d-none');
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-3">Gagal memuat data (${err})</td></tr>`;
+      });
+  }
+});
+</script>
+
+{% endblock %}

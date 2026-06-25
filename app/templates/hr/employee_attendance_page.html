@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid font-corp mt-3">
+    
+    <!-- FLASH MESSAGE -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">Input Absensi Manual</h4>
+            <p class="text-muted small mb-0">
+                <i class="bi bi-calendar-event me-1"></i>
+                <!-- MENGGUNAKAN VARIABEL 'today' DARI FLASK (Bukan date.today() yang bikin error) -->
+                Tanggal Hari Ini: <strong>{{ today.strftime('%d %B %Y') }}</strong>
+            </p>
+        </div>
+        <a href="{{ url_for('hr.attendance_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Kembali
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- KARTU PROFIL -->
+        <div class="col-md-4">
+            <div class="card card-corp h-100 border-top-primary shadow-sm">
+                <div class="card-body text-center p-4">
+                    <img src="{{ url_for('static', filename='uploads/' ~ (employee.photo or 'default_user.png')) }}" 
+                         class="rounded-circle mb-3 border p-1" width="100" height="100" style="object-fit: cover;">
+                    <h5 class="fw-bold mb-1">{{ employee.name }}</h5>
+                    <div class="badge bg-light text-secondary border mb-3">{{ employee.position }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KARTU KONTROL ABSENSI -->
+        <div class="col-md-8">
+            <div class="card card-corp shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-dark">Status Kehadiran</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-6 border-end">
+                            <small class="text-muted fw-bold">JAM MASUK</small>
+                            <div class="display-6 fw-bold text-success mt-1">
+                                {{ attendance.check_in.strftime('%H:%M') if attendance and attendance.check_in else '--:--' }}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted fw-bold">JAM PULANG</small>
+                            <div class="display-6 fw-bold text-danger mt-1">
+                                {{ attendance.check_out.strftime('%H:%M') if attendance and attendance.check_out else '--:--' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" class="row g-3">
+                        <div class="col-md-6">
+                            <button type="submit" name="action" value="clock_in" 
+                                    class="btn btn-success w-100 py-3 fw-bold"
+                                    {% if attendance and attendance.check_in %}disabled{% endif %}>
+                                <i class="bi bi-box-arrow-in-right me-2"></i>ABSEN MASUK
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" name="action" value="clock_out" 
+                                    class="btn btn-danger w-100 py-3 fw-bold"
+                                    {% if not attendance or not attendance.check_in or attendance.check_out %}disabled{% endif %}>
+                                <i class="bi bi-box-arrow-left me-2"></i>ABSEN PULANG
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOG AKTIVITAS (OPSIONAL) -->
+        <div class="col-12">
+            <div class="card card-corp shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-dark">Log Aktivitas Hari Ini</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if activity_logs %}
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">Jam</th><th>Deskripsi</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for log in activity_logs %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-muted">{{ log.created_at.strftime('%H:%M') }}</td>
+                                <td>{{ log.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">Belum ada aktivitas.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-corp { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .card-corp { border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+    .border-top-primary { border-top: 4px solid #1e3a8a; }
+</style>
+{% endblock %}

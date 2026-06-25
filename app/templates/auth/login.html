@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HRD Dashboard – Login</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #0f4c81;   /* biru tua */
+      --secondary: #00b0f0; /* biru muda */
+      --background: #f5f7fa;
+      --text: #333333;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--background);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-page {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ---------------- LEFT SECTION ---------------- */
+    .left-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      padding: 40px;
+    }
+
+    .headline {
+      font-size: 1.8rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .headline span {
+      color: var(--primary);
+    }
+
+    .left-section img {
+      margin-top: 1.8rem;
+      max-width: 260px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ---------------- RIGHT SECTION ---------------- */
+    .right-section {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--background);
+      padding: 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 360px;
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 2rem 2.3rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .login-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 1.8rem;
+    }
+
+    .form-control {
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border: 1px solid #dcdcdc;
+    }
+
+    .btn-login {
+      background-color: var(--primary);
+      border: none;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 0;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    .btn-login:hover {
+      background-color: var(--secondary);
+    }
+
+    .forgot-link {
+      text-align: right;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .divider {
+      border-top: 1px solid #dbdbdb;
+      margin: 1.5rem 0;
+    }
+
+    .extra-links a {
+      font-size: 0.9rem;
+      text-decoration: none;
+      color: var(--secondary);
+      font-weight: 600;
+    }
+
+    .extra-links a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Style untuk pesan error */
+    .alert-message {
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+    @media (max-width: 768px) {
+      .login-page {
+        flex-direction: column;
+      }
+      .left-section {
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- 🔹 LEFT PANEL -->
+  <div class="left-section text-center">
+    <i class="bi bi-building-check display-5 text-primary"></i>
+    <div class="headline mt-3">
+      Welcome back to<br>your <span>HRD Dashboard</span>
+    </div>
+
+    <!-- 🖼️  Gambar logo perusahaan -->
+    <img src="{{ url_for('static', filename='uploads/logo_maxone.png') }}" alt="HRD Dashboard Logo">
+  </div>
+
+  <!-- 🔹 RIGHT PANEL -->
+  <div class="right-section">
+    <div>
+      <div class="login-box">
+        <div class="login-title">Sign in to HRD Dashboard</div>
+
+        <!-- ✅ FITUR BARU: Menampilkan Pesan Error (Flash Messages) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert-message alert-{{ category if category != 'message' else 'danger' }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <!-- ===================================================== -->
+
+        <form method="POST">
+          <!-- ✅ PENTING: CSRF Token (Tanpa ini login di Render/HP akan GAGAL) -->
+          {{ form.hidden_tag() }}
+          <!-- ================================================================ -->
+
+          <div class="mb-3">
+            <!-- Menggunakan input manual agar sesuai style kamu, pastikan namenya benar -->
+            <input type="text" name="username" class="form-control" placeholder="Username" required>
+          </div>
+          <div class="mb-2">
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-login">
+            <i class="bi bi-box-arrow-in-right"></i>  Log In
+          </button>
+
+          <div class="forgot-link">
+            <a href="#" class="text-decoration-none text-secondary">Forgot password?</a>
+          </div>
+        </form>
+
+        <div class="divider"></div>
+
+        <div class="extra-links text-center">
+          <a href="#"><i class="bi bi-person-plus"></i>  Create new account</a>
+        </div>
+      </div>
+
+      <p class="text-center mt-3 small text-muted">
+        © 2026 HRD Dashboard System
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Script Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

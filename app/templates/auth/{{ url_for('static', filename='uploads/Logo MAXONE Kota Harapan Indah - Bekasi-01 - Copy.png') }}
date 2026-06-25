@@ -1,0 +1,3 @@
+html<img src="{{ url_for('static', filename='uploads/logo_maxone.png') }}" 
+     alt="HRD Dashboard Logo"
+     style="height: 50px; width: auto;">

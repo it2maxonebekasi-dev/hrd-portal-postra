@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5">
+
+  <!-- Header atas -->
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h4 class="fw-bold text-primary mb-0">
+      <i class="bi bi-person-vcard"></i> Data Karyawan
+    </h4>
+    <div>
+      <button type="button" class="btn btn-outline-secondary me-2" onclick="window.print()">
+        <i class="bi bi-printer"></i> Cetak PDF
+      </button>
+      <a href="{{ url_for('employee_input_bp.list_employees') }}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Kembali
+      </a>
+    </div>
+  </div>
+
+  <!-- Kartu utama -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <!-- Profil Singkat -->
+      <div class="row mb-4 align-items-center">
+        <div class="col-md-2 text-center">
+          <img src="{{ url_for('static', filename=(employee.photo or 'uploads/default_user.png')) }}"
+               class="rounded-circle border" width="100" height="100" alt="Foto"
+               style="object-fit:cover;">
+        </div>
+        <div class="col-md-10">
+          <h5 class="fw-bold mb-1 text-primary">{{ detail.full_name or employee.name }}</h5>
+          <p class="mb-1 text-muted">
+            {{ employee.position or 'Posisi Belum Ditentukan' }} – {{ employee.job_type or '-' }}
+          </p>
+          <p class="mb-0">
+            <span class="fw-semibold">NIK:</span> {{ detail.nik or '-' }}
+          </p>
+          <span class="badge {{ 'bg-success' if employee.status=='aktif' else 'bg-secondary' }} mt-1">
+            {{ employee.status|capitalize }}
+          </span>
+        </div>
+      </div>
+
+      <!-- ================================ -->
+      <!-- A. IDENTITAS DIRI -->
+      <!-- ================================ -->
+      <h5 class="fw-bold text-primary mt-4">A. Identitas Diri</h5>
+      <hr class="mt-1 mb-3">
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <b>Tempat / Tanggal Lahir:</b>
+          {{ detail.birth_place or '-' }},
+          {% if detail.birth_date %}
+            {{ detail.birth_date.strftime("%d %B %Y") }}
+          {% else %}-{% endif %}
+        </div>
+        <div class="col-md-4"><b>Gender:</b> {{ detail.gender or '-' }}</div>
+        <div class="col-md-4"><b>Pendidikan Terakhir:</b> {{ detail.education or '-' }}</div>
+        <div class="col-12 mt-2"><b>Alamat KTP:</b> {{ detail.address_ktp or '-' }}</div>
+        <div class="col-12"><b>Alamat Sekarang:</b> {{ detail.address_current or '-' }}</div>
+      </div>
+
+      <!-- ================================ -->
+      <!-- B. STATUS & KELUARGA -->
+      <!-- ================================ -->
+      <h5 class="fw-bold text-primary mt-4">B. Status & Keluarga</h5>
+      <hr class="mt-1 mb-3">
+      <div class="row mb-3">
+        <div class="col-md-3"><b>Status Nikah:</b> {{ detail.marital_status or '-' }}</div>
+        <div class="col-md-4"><b>Nama Pasangan:</b> {{ detail.spouse_name or '-' }}</div>
+        <div class="col-md-4"><b>Pekerjaan Pasangan:</b> {{ detail.spouse_job or '-' }}</div>
+        <div class="col-md-1"><b>Anak:</b> {{ detail.num_children or 0 }}</div>
+      </div>
+
+      <!-- ================================ -->
+      <!-- C. ASURANSI -->
+      <!-- ================================ -->
+      <h5 class="fw-bold text-primary mt-4">C. Asuransi</h5>
+      <hr class="mt-1 mb-3">
+      <div class="row mb-3">
+        <div class="col-md-3"><b>BPJS Ketenagakerjaan:</b> {{ detail.bpjs_ketenagakerjaan or '-' }}</div>
+        <div class="col-md-3"><b>BPJS Kesehatan:</b> {{ detail.bpjs_kesehatan or '-' }}</div>
+        <div class="col-md-3"><b>BPJS KIS:</b> {{ detail.bpjs_kis or '-' }}</div>
+        <div class="col-md-3"><b>Jamkesda:</b> {{ detail.jamkesda or '-' }}</div>
+      </div>
+
+      <!-- ================================ -->
+      <!-- D. KONTAK DARURAT -->
+      <!-- ================================ -->
+      <h5 class="fw-bold text-primary mt-4">D. Kontak Darurat</h5>
+      <hr class="mt-1 mb-3">
+      <div class="row mb-3">
+        <div class="col-md-4"><b>Nama Kontak:</b> {{ detail.emergency_contact_name or '-' }}</div>
+        <div class="col-md-4"><b>No HP:</b> {{ detail.emergency_phone or '-' }}</div>
+        <div class="col-md-4"><b>Hubungan:</b> {{ detail.emergency_relation or '-' }}</div>
+        <div class="col-12"><b>Alamat:</b> {{ detail.emergency_address or '-' }}</div>
+      </div>
+
+      <!-- ================================ -->
+      <!-- E. DOKUMEN TERUNGGUUH -->
+      <!-- ================================ -->
+      <h5 class="fw-bold text-primary mt-4">E. Dokumen Terunggah</h5>
+      <hr class="mt-1 mb-3">
+      <div class="row mb-3">
+        {% if docs %}
+          {% for doc in docs %}
+          <div class="col-md-4 mb-2">
+            <i class="bi bi-file-earmark-text"></i>
+            <b>{{ doc.document_type }}</b> – 
+            <a href="{{ url_for('static', filename=doc.file_path) }}" target="_blank">Lihat File</a>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-12 text-muted">Belum ada dokumen terunggah.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

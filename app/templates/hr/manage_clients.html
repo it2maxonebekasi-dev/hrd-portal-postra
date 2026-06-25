@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- ========================================== -->
+<!-- CSS KHUSUS CETAK (PRINT STYLE) -->
+<!-- ========================================== -->
+<style>
+    /* Sembunyikan elemen print di tampilan web biasa */
+    .print-header, .print-footer, .print-only { display: none; }
+
+    @media print {
+        /* 1. Reset Halaman A4 */
+        @page { size: A4 landscape; margin: 1cm; }
+        body { 
+            background: #fff !important; 
+            font-family: 'Times New Roman', serif !important; /* Font Laporan Resmi */
+            color: #000 !important;
+            -webkit-print-color-adjust: exact; 
+            font-size: 12pt;
+        }
+
+        /* 2. Sembunyikan Elemen Web yang Tidak Perlu */
+        .no-print, .sidebar, .top-navbar, .btn, .input-group, 
+        .collapse, .alert, footer, .avatar-initials, .badge {
+            display: none !important;
+        }
+        .main-content { margin: 0 !important; padding: 0 !important; }
+        .container-fluid { padding: 0 !important; width: 100% !important; }
+        
+        /* 3. Tampilkan Elemen Khusus Print */
+        .print-header, .print-footer, .print-only { display: block !important; }
+
+        /* 4. Styling Header Laporan (Kop Surat) */
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px double #000;
+            padding-bottom: 10px;
+        }
+        .ph-title { font-size: 18pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .ph-subtitle { font-size: 10pt; margin-top: 5px; }
+
+        /* 5. Styling Tabel ala Excel/Word */
+        .card { border: none !important; box-shadow: none !important; }
+        .table-responsive { overflow: visible !important; }
+        table { 
+            width: 100% !important; 
+            border-collapse: collapse !important; 
+            margin-top: 20px;
+        }
+        th, td { 
+            border: 1px solid #000 !important; /* Garis Hitam Tegas */
+            padding: 8px !important;
+            vertical-align: top !important;
+            color: #000 !important;
+        }
+        th { 
+            background-color: #e0e0e0 !important; /* Header Abu-abu */
+            font-weight: bold !important;
+            text-align: center !important;
+            text-transform: uppercase;
+            font-size: 10pt;
+        }
+        /* Kolom Aksi & Avatar di-hide di tabel */
+        .col-aksi, .col-avatar { display: none !important; }
+        
+        /* Teks di tabel */
+        .company-name { font-weight: bold; font-size: 12pt; text-decoration: none; color: #000; }
+        a { text-decoration: none !important; color: #000 !important; }
+
+        /* 6. Footer Tanda Tangan */
+        .print-footer {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            page-break-inside: avoid;
+        }
+        .sign-box { text-align: center; width: 200px; }
+        .sign-line { border-bottom: 1px solid #000; margin-top: 60px; }
+    }
+</style>
+
+<div class="container-fluid mt-3 mb-5 font-corp">
+
+  <!-- ========================== -->
+  <!-- HEADER PRINT (KOP SURAT) -->
+  <!-- ========================== -->
+  <div class="print-header">
+      <div class="ph-title">Laporan Data Mitra Kerja (Client)</div>
+      <div class="ph-subtitle">PT. HRD DASHBOARD SYSTEM - Enterprise Resource Planning</div>
+      <div class="ph-subtitle" style="font-size: 9pt; font-style: italic;">Dicetak pada: <span id="printDate"></span></div>
+  </div>
+
+  <!-- NOTIFIKASI WEB -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-4 no-print">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+            {{ message | safe }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- HEADER & TOOLBAR WEB -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 no-print">
+    <div>
+      <h4 class="fw-bold text-dark mb-1">Manajemen Mitra Kerja</h4>
+      <p class="text-muted small mb-0">Database perusahaan client dan kontrak kerjasama.</p>
+    </div>
+    
+    <div class="d-flex gap-2 mt-3 mt-md-0">
+      <div class="input-group shadow-sm" style="max-width: 300px;">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" id="clientSearch" class="form-control border-start-0 ps-0" placeholder="Cari Client / PIC...">
+      </div>
+      <button class="btn btn-primary shadow-sm fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#formAddClient">
+        <i class="bi bi-plus-lg me-2"></i>Mitra Baru
+      </button>
+    </div>
+  </div>
+
+  <!-- FORM TAMBAH CLIENT (WEB ONLY) -->
+  <div class="collapse mb-4 no-print" id="formAddClient">
+    <div class="card card-corp border-top-primary bg-white shadow-lg position-relative overflow-hidden">
+      <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h6 class="m-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Formulir Registrasi Mitra</h6>
+      </div>
+      <div class="card-body p-4 position-relative">
+        <form method="POST" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label-corp">Nama Perusahaan <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="PT. Contoh Sejahtera" required>
+          </div>
+          <div class="col-md-3">
+             <label class="form-label-corp">Contact Person (PIC)</label>
+            <input type="text" name="contact_person" class="form-control" placeholder="Nama Lengkap...">
+          </div>
+          <div class="col-md-2">
+             <label class="form-label-corp">No. Telepon / WA</label>
+            <input type="text" name="phone" class="form-control" placeholder="0812...">
+          </div>
+          <div class="col-md-3">
+             <label class="form-label-corp">Alamat Kantor</label>
+            <input type="text" name="address" class="form-control" placeholder="Kota / Alamat...">
+          </div>
+          <div class="col-12 text-end mt-4">
+             <button type="button" class="btn btn-light text-muted me-2" data-bs-toggle="collapse" data-bs-target="#formAddClient">Batal</button>
+            <button class="btn btn-primary px-4 shadow-sm" type="submit">
+              <i class="bi bi-check-lg me-2"></i>Simpan Data
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABEL DATA CLIENT -->
+  <div class="card card-corp shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center no-print">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm">
+                Total: {{ clients|length }} Mitra
+            </span>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i> Print Data
+        </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="clientTable">
+        <thead class="bg-light text-secondary small text-uppercase">
+          <tr>
+            <th class="ps-4 py-3 text-muted" style="width:50px;">No</th>
+            <th class="py-3">Nama Perusahaan</th>
+            <th class="py-3">Alamat Kantor</th>
+            <th class="py-3">PIC / Narahubung</th>
+            <th class="py-3">No. Telepon</th>
+            <th class="py-3 text-center col-aksi" style="width:140px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="border-top-0">
+          {% for c in clients %}
+          <tr class="data-row">
+            <td class="ps-4 text-center text-muted fw-bold small">{{ loop.index }}</td>
+            
+            <!-- Nama Perusahaan -->
+            <td>
+                <div class="d-flex align-items-center">
+                    <!-- Avatar (Hide saat print) -->
+                    <div class="avatar-initials me-3 shadow-sm no-print {{ ['bg-primary', 'bg-success', 'bg-danger', 'bg-warning', 'bg-info'] | random }}">
+                        {{ c.name[:2] | upper }}
+                    </div>
+                    <div>
+                        <span class="fw-bold text-dark company-name d-block">{{ c.name }}</span>
+                        {% if c.user %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-1 mt-1 no-print" style="font-size: 0.65rem;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Login Aktif
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </td>
+            
+            <!-- Alamat -->
+            <td class="small text-muted">
+                {{ c.address or '-' }}
+            </td>
+            
+            <!-- CP -->
+            <td>
+                <div class="fw-bold text-dark mb-1 cp-name">
+                    {{ c.contact_person or '-' }}
+                </div>
+            </td>
+            
+            <!-- Kontak -->
+            <td>
+                {{ c.phone or '-' }}
+            </td>
+
+            <!-- Aksi (Hide saat print) -->
+            <td class="text-center col-aksi no-print">
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-icon btn-light text-primary shadow-sm" title="Edit Data" data-bs-toggle="tooltip">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <form action="{{ url_for('hr.delete_client', id=c.id) }}" method="POST" onsubmit="return confirm('Hapus mitra ini?');">
+                        <button type="submit" class="btn btn-icon btn-light text-danger shadow-sm" title="Hapus Mitra" data-bs-toggle="tooltip">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-5">Belum ada data.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FOOTER PRINT (TANDA TANGAN) -->
+  <div class="print-footer">
+      <div class="sign-box">
+          <div>Dibuat Oleh,</div>
+          <div class="sign-line"></div>
+          <div>Admin HR</div>
+      </div>
+      <div class="sign-box">
+          <div>Mengetahui,</div>
+          <div class="sign-line"></div>
+          <div>Direktur Operasional</div>
+      </div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      // Isi Tanggal Cetak
+      const d = new Date();
+      const dateStr = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('printDate').innerText = dateStr;
+
+      // Search Function
+      const searchInput = document.getElementById('clientSearch');
+      const rows = document.querySelectorAll('.data-row');
+      searchInput.addEventListener('keyup', function() {
+        const filter = searchInput.value.toLowerCase();
+        rows.forEach(row => {
+            const txt = row.innerText.toLowerCase();
+            row.style.display = txt.includes(filter) ? "" : "none";
+        });
+      });
+  });
+</script>
+
+<style>
+  .font-corp { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .form-label-corp { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-bottom: 5px; }
+  .card-corp { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+  .border-top-primary { border-top: 4px solid #1e3a8a; }
+  .avatar-initials { width: 40px; height: 40px; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .btn-icon { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #eee; }
+  .btn-icon:hover { transform: translateY(-2px); background-color: #fff; border-color: #ccc; }
+</style>
+
+{% endblock %}

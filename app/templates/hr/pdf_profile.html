@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<style>
+    @page {
+        size: A4;
+        margin: 2cm;
+        @top-center { content: "RAHASIA - DATA KARYAWAN"; font-size: 9px; color: #666; }
+        @bottom-right { content: "Halaman " counter(page); font-size: 9px; }
+    }
+    body {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 11px;
+        color: #000;
+        line-height: 1.4;
+    }
+    /* HEADER */
+    .header {
+        width: 100%;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .header-logo {
+        font-size: 20px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #8ec308;
+    }
+    .header-sub {
+        font-size: 10px;
+        color: #555;
+    }
+    .doc-title {
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-decoration: underline;
+        text-transform: uppercase;
+    }
+
+    /* FOTO PROFILE */
+    .photo-box {
+        position: absolute;
+        top: 120px;
+        right: 0px;
+        width: 113px;  /* setara 3cm */
+        height: 151px; /* setara 4cm */
+        border: 1px solid #000;
+        padding: 2px;
+    }
+    .photo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* TABEL DATA */
+    .section-title {
+        background-color: #f0f0f0;
+        padding: 5px;
+        font-weight: bold;
+        font-size: 12px;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    td {
+        vertical-align: top;
+        padding: 3px 0;
+    }
+    .label {
+        width: 30%;
+        font-weight: bold;
+        color: #333;
+    }
+    .sep {
+        width: 2%;
+    }
+    .val {
+        width: 68%;
+        border-bottom: 1px dotted #ccc; /* Garis titik-titik ala form */
+    }
+
+    /* TANDA TANGAN */
+    .signature-section {
+        margin-top: 50px;
+        width: 100%;
+    }
+    .sig-box {
+        width: 40%;
+        float: left;
+        text-align: center;
+    }
+    .sig-line {
+        margin-top: 60px;
+        border-bottom: 1px solid #000;
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+</head>
+<body>
+
+    <!-- HEADER PERUSAHAAN -->
+    <div class="header">
+        <div class="header-logo">MaxOne Kota Harapan Indah</div>
+        <div class="header-sub">
+            Jl. Harapan Indah 2, 8 No.18 Blok SN6 <br>
+            RT.10/RW.8, Pusaka Rakyat, Kec. Tarumajaya,<br>
+            Kabupaten Bekasi, Jawa Barat 17214<br>
+            Telp: (021) 88887912 | Wa : +62 877 6558 1000 | Email: hr@company.com
+        </div>
+    </div>
+
+    <div class="doc-title">FORMULIR BIODATA KARYAWAN</div>
+
+    <!-- FOTO (Menggunakan absolute path agar terbaca PDF Generator) -->
+    <!-- Jika photo kosong, tampilkan kotak kosong -->
+    <div class="photo-box">
+        {% if employee.photo and employee.photo != 'default_user.png' %}
+            <!-- Note: xhtml2pdf butuh path absolut. Untuk simpel di sini pakai <img> biasa, 
+                 tapi jika gambar tidak muncul di PDF, harus pakai full path server -->
+            <img src="app/static/uploads/{{ employee.photo }}" alt="Foto">
+        {% else %}
+            <div style="text-align: center; margin-top: 60px; color: #ccc;">3x4</div>
+        {% endif %}
+    </div>
+
+    <!-- 1. IDENTITAS UTAMA -->
+    <div class="section-title">I. DATA KEPAGAWAIAN</div>
+    <div style="width: 75%;"> <!-- Width dikecilkan biar gak nabrak foto -->
+        <table>
+            <tr><td class="label">NIK / ID Karyawan</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.nik or '-' }}</td></tr>
+            <tr><td class="label">Nama Lengkap</td><td class="sep">:</td><td class="val">{{ employee.name }}</td></tr>
+            <tr><td class="label">Jabatan / Posisi</td><td class="sep">:</td><td class="val">{{ employee.position }}</td></tr>
+            <tr><td class="label">Lokasi Kerja (Client)</td><td class="sep">:</td><td class="val">{{ employee.client.name if employee.client else 'Kantor Pusat' }}</td></tr>
+            <tr><td class="label">Tanggal Bergabung</td><td class="sep">:</td><td class="val">{{ employee.join_date.strftime('%d %B %Y') }}</td></tr>
+        </table>
+    </div>
+
+    <!-- 2. DATA PRIBADI -->
+    <div class="section-title">II. DATA PRIBADI</div>
+    <table>
+        <tr><td class="label">Tempat, Tanggal Lahir</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.birth_place }}, {{ employee.personal_detail.birth_date.strftime('%d-%m-%Y') if employee.personal_detail.birth_date else '-' }}</td></tr>
+        <tr><td class="label">Jenis Kelamin</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.gender }}</td></tr>
+        <tr><td class="label">Alamat (KTP)</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.address_ktp or '-' }}</td></tr>
+        <tr><td class="label">Alamat Domisili</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.address_current or '-' }}</td></tr>
+        <tr><td class="label">No. Telepon / HP</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.phone or '-' }}</td></tr>
+        <tr><td class="label">Email</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.email or '-' }}</td></tr>
+        <tr><td class="label">Pendidikan Terakhir</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.education or '-' }}</td></tr>
+        <tr><td class="label">Golongan Darah</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.blood_type or '-' }}</td></tr>
+    </table>
+
+    <!-- 3. DATA KELUARGA -->
+    <div class="section-title">III. DATA KELUARGA & SOSIAL</div>
+    <table>
+        <tr><td class="label">Status Pernikahan</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.marital_status or '-' }}</td></tr>
+        <tr><td class="label">Nama Pasangan</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.spouse_name or '-' }}</td></tr>
+        <tr><td class="label">Jumlah Anak</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.num_children }} Orang</td></tr>
+        <tr><td class="label">No. BPJS Ketenagakerjaan</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.bpjs_ketenagakerjaan or '-' }}</td></tr>
+        <tr><td class="label">No. BPJS Kesehatan</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.bpjs_kesehatan or '-' }}</td></tr>
+    </table>
+
+    <!-- 4. KONTAK DARURAT -->
+    <div class="section-title">IV. KONTAK DARURAT (EMERGENCY CONTACT)</div>
+    <table>
+        <tr><td class="label">Nama Kontak</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.emergency_contact_name or '-' }}</td></tr>
+        <tr><td class="label">Hubungan</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.emergency_relation or '-' }}</td></tr>
+        <tr><td class="label">No. Telepon</td><td class="sep">:</td><td class="val">{{ employee.personal_detail.emergency_phone or '-' }}</td></tr>
+    </table>
+
+    <br><br>
+    <p style="font-size: 10px; font-style: italic;">
+        Saya menyatakan bahwa data yang tercantum di atas adalah benar dan dapat dipertanggungjawabkan.
+    </p>
+
+    <!-- KOLOM TANDA TANGAN -->
+    <div class="signature-section">
+        <div class="sig-box">
+            <br>Mengetahui,<br><b>HR Department</b>
+            <div class="sig-line"></div>
+            ( HR Manager )
+        </div>
+
+        <div class="sig-box" style="float: right;">
+            Jakarta, {{ now.strftime('%d %B %Y') }}<br>Dibuat Oleh,
+            <div class="sig-line"></div>
+            ( <b>{{ employee.name }}</b> )
+        </div>
+    </div>
+
+</body>
+</html>

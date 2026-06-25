@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4 class="mb-3 text-primary fw-bold">Manajemen Karyawan</h4>
+
+<!-- Form Tambah Karyawan -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <form method="POST" class="row g-3">
+      <div class="col-md-3">
+        <input type="text" name="name" class="form-control" placeholder="Nama" required>
+      </div>
+      <div class="col-md-3">
+        <input type="text" name="position" class="form-control" placeholder="Posisi" required>
+      </div>
+      <div class="col-md-2">
+        <select name="job_type" class="form-select">
+          <option value="security">Security</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="driver">Driver</option>
+          <option value="helper">Helper</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="client_id" class="form-select" required>
+          <option value="">-- Pilih Client --</option>
+          {% for c in clients %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-primary w-100" type="submit">
+          <i class="bi bi-person-plus"></i> Tambah
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Tabel Data Karyawan -->
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title text-secondary mb-3">Daftar Karyawan</h5>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead class="table-primary">
+          <tr>
+            <th>No</th><th>Nama</th><th>Posisi</th><th>Client</th>
+            <th>Jenis</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in employees %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ e.name }}</td>
+            <td>{{ e.position }}</td>
+            <td>{{ e.client.name if e.client else '-' }}</td>
+            <td>{{ e.job_type }}</td>
+            <td>
+              {% if e.status == 'aktif' %}
+                <span class="badge bg-success">Aktif</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ e.status }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">
+              Tidak ada data karyawan.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
