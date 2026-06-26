@@ -10,7 +10,10 @@ from sqlalchemy import desc, extract, func
 from app.models import Employee, Client, Attendance, Assignment, User, ActivityLog, EmployeePersonalDetail, EmployeeDocument
 from app import db
 from app.role_check import role_required
-from xhtml2pdf import pisa
+try:
+    from xhtml2pdf import pisa
+except ImportError:
+    pisa = None
 
 # ============================================================
 # 🔧 KONFIGURASI BLUEPRINT
