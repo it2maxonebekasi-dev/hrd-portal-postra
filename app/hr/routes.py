@@ -641,7 +641,7 @@ def get_employees_by_job(job_type):
 @hr_bp.route('/dashboard')
 @login_required
 @role_required('admin', 'hr')
-def hr_dashboard():
+def dashboard.html():
     today = date.today()
 
     total_employees = Employee.query.count()
