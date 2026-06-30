@@ -110,7 +110,8 @@ def manage_employees():
         return redirect(url_for('hr.employee_details', id=new_employee.id))
 
     employees = Employee.query.order_by(Employee.id.desc()).all()
-    return render_template('hr/employee_cards.html', employees=employees, clients=clients)
+    return render_template(
+    'hr/dashboard.html',)
 
 
 # ============================================================
