@@ -675,16 +675,17 @@ def hr_dashboard():
         client_labels.append(cname)
         client_counts.append(ccount)
 
-    return render_template(
-        'hr/dashboard_hr.html',
-        total_employees=total_employees,
-        active_employees=active_employees,
-        total_clients=total_clients,
-        total_assignments=total_assignments,
-        hadir_hari_ini=hadir_hari_ini, 
-        job_labels=job_labels,
-        job_counts=job_counts,
-        client_labels=client_labels,
-        client_counts=client_counts,
-        today=today
+return render_template(
+    'hr/dashboard.html',
+    total_employees=total_employees,
+    active_employees=active_employees,
+    total_clients=total_clients,
+    total_assignments=total_assignments,
+    hadir_hari_ini=hadir_hari_ini, 
+    job_labels=job_labels,
+    job_counts=job_counts,
+    client_labels=client_labels,
+    client_counts=client_counts,
+    today=today
+)
     )
